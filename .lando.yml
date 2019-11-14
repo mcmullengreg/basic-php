@@ -1,0 +1,4 @@
+name: LEMP
+recipe: lemp
+config:
+  webroot: /
