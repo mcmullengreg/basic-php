@@ -4,7 +4,7 @@
   ini_set('display_startup_errors', 1);
   error_reporting(E_ALL);
   
-  $_SERVER['CASCADE_USER'] = 'cascadet_APIUSER';
-  $_SERVER['CASCADE_PASS'] = 'cascadet_APIUSERPASSWORDXU!@#$)*';
+  $_SERVER['CASCADE_USER'] = '';
+  $_SERVER['CASCADE_PASS'] = '';
   
   
