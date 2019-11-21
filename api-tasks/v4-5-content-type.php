@@ -3,7 +3,7 @@
   $type = !empty($_GET['type']) ? $_GET['type'] : '';
   $id   = !empty($_GET['id']) ? $_GET['id'] : '';  
   $oldContentTypeID = "6b47c0c30afd02580af96997ae1c5f2c";
-  $newContentTypeID = "2480c31e0afd0258306942cd2ac7c7de";
+  $newContentTypeID = "8f2fa66b0afd02580af96997d18aa1bf";
 ?>
   
   <form method="GET">
@@ -82,6 +82,10 @@
       strpos($thisThing['page']['structuredData']['structuredDataNodes'][0]['text'], "::CONTENT-XML-CHECKBOX::Left Navigation") !== FALSE ? '' : array_push($tags, array('name'=>'no-nav'));
       // Hide this page from Nav
       $hideFromNav = ( !empty($metaData['dynamicFields'][0]['fieldValues']) && $metaData['dynamicFields'][0]['fieldValues'][0]['value'] == "Yes" ) ? "Show" : "Hide";
+      $authKey     = array_search("requireAuth", array_column($thisThing['page']['metadata']['dynamicFields'], 'name'));
+      if ( isset($authKey) ){
+        $includeAuth = $thisThing['page']['metadata']['dynamicFields'][$authKey];
+      }
       // Update the ContentType ID
       $thisThing['page']['contentTypeId'] = $newContentTypeID;
       unset($thisThing['page']['pageConfigurations']);
@@ -120,7 +124,7 @@
               "value" => $hideFromNav
             )
           )
-        )
+        ), $includeAuth
       );
       // highlight_string(var_export($thisThing, true));    
       curl_multi_remove_handle($mh, $ch);
