@@ -80,8 +80,8 @@
       $tags = array(); // Generic array, for pushing any needed tags to.
       // IF the current document INCLUDES Left Nav, we do NOT need the tag; otherwise we do!
       strpos($thisThing['page']['structuredData']['structuredDataNodes'][0]['text'], "::CONTENT-XML-CHECKBOX::Left Navigation") !== FALSE ? '' : array_push($tags, array('name'=>'no-nav'));
-      // Old Wysiwyg content
-      $wysiwyg = $thisThing['page']['structuredData']['structuredDataNodes'][3]['text'];
+      // Hide this page from Nav
+      $hideFromNav = ( !empty($metaData['dynamicFields'][0]['fieldValues']) && $metaData['dynamicFields'][0]['fieldValues'][0]['value'] == "Yes" ) ? "Show" : "Hide";
       // Update the ContentType ID
       $thisThing['page']['contentTypeId'] = $newContentTypeID;
       unset($thisThing['page']['pageConfigurations']);
@@ -108,96 +108,24 @@
       
       $result = json_decode(curl_exec($ch), true);
       highlight_string(var_export($result, true)); 
-      exit();
+
       // Set the new tags!
       $thisThing['page']['tags'] = $tags;
-      // Restructure the Data Nodes
-      
-      $thisThing['page']['structuredData']['structuredDataNodes'][0] = array (
-        'type' => 'group',
-        'identifier' => 'hero',
-        'structuredDataNodes' => 
-        array (
-          0 => 
-          array (
-            'type' => 'text',
-            'identifier' => 'imgvid',
-            'text' => 'image',
-            'recycled' => false,
-          ),
-          1 => 
-          array (
-            'type' => 'asset',
-            'identifier' => 'hero_image',
-            'fileId' => '2a7621140afd02580ceb04ec1839091b',
-            'filePath' => 'images/content_hero-1x.jpg',
-            'assetType' => 'file',
-            'recycled' => false,
-          ),
-          2 => 
-          array (
-            'type' => 'asset',
-            'identifier' => 'hero_image',
-            'fileId' => '2a7748fa0afd02580ceb04ec03b5f86d',
-            'filePath' => 'images/content_hero-2x.jpg',
-            'assetType' => 'file',
-            'recycled' => false,
-          ),
-          3 => 
-          array (
-            'type' => 'text',
-            'identifier' => 'video_id',
-            'text' => '',
-            'recycled' => false,
-          ),
-          4 => 
-          array (
-            'type' => 'asset',
-            'identifier' => 'video_preview',
-            'assetType' => 'file',
-            'recycled' => false,
-          ),
-          5 => 
-          array (
-            'type' => 'text',
-            'identifier' => 'video_cta',
-            'text' => 'Learn More',
-            'recycled' => false,
-          ),
-          6 => 
-          array (
-            'type' => 'asset',
-            'identifier' => 'video_img',
-            'assetType' => 'file',
-            'recycled' => false,
-          ),
-        ),
-        'recycled' => false,
+      // Exclude from Navigation...
+      $thisThing['page']['metadata']['dynamicFields'] = array(
+        array(
+          'name' => 'NavInclude',
+          'fieldValues' => array(
+            array(
+              "value" => $hideFromNav
+            )
+          )
+        )
       );
-      $thisThing['page']['structuredData']['structuredDataNodes'][1] = array(
-        'type' => 'text',
-        'identifier' => 'wysiwyg',
-        'text' => $wysiwyg,
-        'recycled' => false
-      );
-      ## This will be the custom files!
-      $thisThing['page']['structuredData']['structuredDataNodes'][2] = $thisThing['page']['structuredData']['structuredDataNodes'][5];
-      unset($thisThing['page']['structuredData']['structuredDataNodes'][3]);
-      unset($thisThing['page']['structuredData']['structuredDataNodes'][4]);
-      unset($thisThing['page']['structuredData']['structuredDataNodes'][5]);
-      // Exclude from Navigation
-      $metaData['dynamicFields'][0]['fieldValues'][0]['value'] = $metaData['dynamicFields'][0]['fieldValues'][0]['value'] == "Yes" ? "Show" : "Hide";
-      $authField = $metaData['dynamicFields'][1];
-      $showInNav = $metaData['dynamicFields'][0];
-      
       // highlight_string(var_export($thisThing, true));    
       curl_multi_remove_handle($mh, $ch);
       
       highlight_string(var_export($thisThing, true));
-      
-
-      
-      
       $fields = array(
         'authentication' => array(
         'username' => $_SERVER['CASCADE_USER'],
