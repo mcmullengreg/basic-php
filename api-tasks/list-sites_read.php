@@ -1,5 +1,5 @@
 <?php
-  include_once('../_config.php');  
+  include_once('../_config.php');
   $type = !empty($_GET['type']) ? $_GET['type'] : '';
   $id   = !empty($_GET['id']) ? $_GET['id'] : '';
   $url = ( !empty($_GET['instance']) && $_GET['instance'] == "prod" ? "https://cascade.xavier.edu/api/v1/" : "https://cascadet.xavier.edu/api/v1/");

@@ -18,7 +18,7 @@
     <input type="submit" value="Do the magic!" />
   </form>
 <?php
-  $url  = "https://cascade.xavier.edu/api/v1/read";
+  $url  = "https://cascadet.xavier.edu/api/v1/read";
   $auth = array(
     'authentication' => array(
       'username' => $_SERVER['CASCADE_USER'],
@@ -38,5 +38,12 @@
   
   $result = json_decode(curl_exec($ch), true);
   
-  highlight_string(var_export($result, true));
+//   highlight_string(var_export($result, true));
+  
+  // See if we can modify the MetaData fields...
+  echo "<br />";
+  
+  highlight_string(var_export($result['asset']['page']['metadata']['dynamicFields'], true));
+  
+  
   
