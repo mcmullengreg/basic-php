@@ -1,13 +1,5 @@
 <?php
   include_once('../_config.php');
-  
-  $data       = json_decode(file_get_contents("php://input"), true);  
-  
-  highlight_string(var_export($data, true));
-  
-  exit();
-  
-  
   $apiKey = $_SERVER['CASCADE_API'];
   $auth = array(
     'authentication' => array(
@@ -15,7 +7,7 @@
     )
   );
   $auth = json_encode($auth);
-  $url = "https://cascade.xavier.edu/api/v1/";
+  $url = "https://cms.umkc.edu/api/v1/";
 
   $ch = curl_init($url.'listSites/');
   curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
@@ -25,12 +17,15 @@
     'Content-Type: application/json',
     'Content-Length: ' . strlen($auth)
   ));
-  
+
   $result = json_decode(curl_exec($ch), true);
-  
-  echo json_encode(
+  // foreach($result['sites'] as $item){
+  //   echo '"'.$item['path']['path'].'",';
+  // }
+
+  highlight_string(var_export((
     array(
       'total' => sizeof($result['sites']),
       'sites' => $result['sites']
     )
-  );
+  ), true));

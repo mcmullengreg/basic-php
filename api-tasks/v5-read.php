@@ -1,9 +1,10 @@
 <?php
-  include_once('../_config.php');  
+  include_once('../_config.php');
+  $apiKey = $_SERVER['CASCADE_API'];
   $type = !empty($_GET['type']) ? $_GET['type'] : '';
-  $id   = !empty($_GET['id']) ? $_GET['id'] : '';  
+  $id   = !empty($_GET['id']) ? $_GET['id'] : '';
 ?>
-  
+
   <form method="GET">
     <label for="type">Type</label><br />
     <select name="type" id="type">
@@ -18,15 +19,14 @@
     <input type="submit" value="Do the magic!" />
   </form>
 <?php
-  $url  = "https://cascade.xavier.edu/api/v1/read";
+  $url  = "https://cms.umkc.edu/api/v1/read";
   $auth = array(
     'authentication' => array(
-      'username' => $_SERVER['CASCADE_USER'],
-      'password' => $_SERVER['CASCADE_PASS'] 
+      'apiKey' => $apiKey
     )
   );
   $auth = json_encode($auth);
-  
+
   $ch = curl_init($url.'/'.$type.'/'.$id);
   curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
   curl_setopt($ch, CURLOPT_POSTFIELDS, $auth);
@@ -35,8 +35,7 @@
     'Content-Type: application/json',
     'Content-Length: ' . strlen($auth)
   ));
-  
+
   $result = json_decode(curl_exec($ch), true);
-  
+
   highlight_string(var_export($result, true));
-  
