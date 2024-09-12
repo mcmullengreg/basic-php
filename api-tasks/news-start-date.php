@@ -18,7 +18,9 @@
     <input type="submit" value="Do the magic!" />
   </form> -->
 <?php
-  $list = explode(",", "be2b1e3cac1e04cd07ec4c55463a5170,be2b391eac1e04cd07ec4c55699dc7e7,");
+  $startDate = "2024-03-02T05:00:00.000Z";
+  $list = "be2b5d35ac1e04cd07ec4c552107a1cf";
+  $list = explode(",", $list);
 
   foreach ( $list as $id ) :
   $type = "page";
@@ -41,9 +43,11 @@
 
   $result = json_decode(curl_exec($ch), true);
   $update = $result['asset'];
-  $update['page']['shouldBePublished'] = false;
-  $update['page']['shouldBeIndexed'] = false;
+  $update['page']['metadata']['startDate'] = $startDate;
+  $update['page']['metadata']['teaser'] = " ";
   // See if we can modify the MetaData fields...
+  // highlight_string(var_export($update, true));
+  // exit("Stopped");
   echo "<br />";
 
 
