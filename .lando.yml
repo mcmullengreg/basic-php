@@ -2,3 +2,4 @@ name: LEMP
 recipe: lemp
 config:
   webroot: /
+  php: '8.0'
