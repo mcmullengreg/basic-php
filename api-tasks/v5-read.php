@@ -38,4 +38,6 @@
 
   $result = json_decode(curl_exec($ch), true);
 
+  highlight_string(var_export($result['asset']['page']['structuredData']['structuredDataNodes'][3]['text'], true));
+
   highlight_string(var_export($result, true));
