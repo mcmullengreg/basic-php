@@ -10,7 +10,6 @@ class Cascade {
       )
     );
   }
-
   public function read($id, $type) {
     $url  = "https://cms.umkc.edu/api/v1/read";
     $auth = json_encode($this->_auth);
@@ -27,5 +26,25 @@ class Cascade {
     $result = json_decode(curl_exec($ch), true);
     curl_close($ch);
     return $result;
+  }
+  
+  public function getPageIds($jsonURL) {
+    $url = filter_var($jsonURL, FILTER_SANITIZE_URL);
+    
+    if (filter_var($url, FILTER_VALIDATE_URL) !== false) {
+      $ch = curl_init();
+      curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+      curl_setopt($ch, CURLOPT_URL, $url);
+      $result = json_decode(curl_exec($ch), true);
+      curl_close($ch);
+      if ( curl_errno($ch) ) {
+        $result = curl_error($ch);
+      }
+      $return = array("status" => "valid", "message" => $result );
+    } else {
+      $return = array("status" => "error", "message" => "Invalid web address");
+    }
+    
+    return $return;
   }
 }

@@ -1,5 +1,6 @@
 <?php include('./inc/base.php'); ?>
 <?php $cms = new Cascade(); ?>
+<?php $pageIds = $cms->getPageIds("https://www2.umkc.edu/law-test/json-list.json")['message']; ?>
 <!DOCTYPE html>
 <html>
   <head>
@@ -20,64 +21,11 @@
             // Some accordions: 1bf17912ac1e00767922334d75c556c8
           ?>
           <?php
-            $v1Page =  $cms->read('53926312ac1e00760cb997e4c4c60d23', 'page');
-            $v1Page = $v1Page['asset']['page'];
-            $mainContentGroup = $v1Page['structuredData']['structuredDataNodes'][1]; // Gets the main content group (of 1), skipping the hero
-            $mainContentSDN = $mainContentGroup['structuredDataNodes']; // Gets the structured Data Nodes
-            $multiColSDN = $v1Page['structuredData']['structuredDataNodes'][2];
-            $accordionSDN = $v1Page['structuredData']['structuredDataNodes'][3];
-            $includeFactoids = $mainContentSDN[2]['text']; // Grabs if the page has factoids, for the content grab [value of Yes or No ]
-            $isResourceList = !empty($mainContentSDN[3]['text']) ? $mainContentSDN[3]['text'] : false;
-            $html = "";
-            if ( $includeFactoids == "Yes" ) {
-              // Content group is multiple. In Group 4
-              $factoids = $mainContentSDN[4]['structuredDataNodes'];
-              foreach ( $factoids as $factoid ) {
-                if ( !empty($factoid['text']) ) :
-                  $html .= $factoid['text'];
-                endif;
-              }
-            } elseif ( $isResourceList == "Yes" ){
-            } else { // No Factoid, Not a resource list
-              $html .= $mainContentSDN[5]['text'];
+            foreach ( $pageIds as $key => $item ) {
+              $content = file_get_contents($item['link']);
+              echo "$content";
             }
-
-            // Accordion loop (adds HTML to the main page)
-            $accordionSDN = $v1Page['structuredData']['structuredDataNodes'][3];
-            highlight_string(var_export($accordionSDN, true));
-            foreach ( $accordionSDN as $key => $acc ) {
-              if ( $key == 1 ) { // Group Text
-              }
-              if ( $key == 1 ) { // Group Text
-              }
-              if ( $key == 3 ) { // Group Text
-              }
-              // highlight_string(var_export($acc, true));
-              // $groupText = !empty($acc[0]['text']) ? $acc[0]['text'] : '';
-
-              echo "<br /><br />";
-              // $itemSDN = $acc[3]['structuredDataNodes'];
-              // $title = !empty($acc[0]['text']) ? `<h2>$acc[0]['text']</h2>` : '';
-              // $intro = !empty($acc[1]['text']) ? $acc[1]['text'] : '';
-              // foreach ( $acc[3]['structuredDataNodes'] as $key => $item){
-              //   $title = !empty($item['']) ? $item[''] : '';
-              // }
-              // $html .= "$title";
-            }
-            // Needs:
-              // Resource List
-              // Text without Factoids
-              // General Text Block
-
-
-            $values = array(
-              "contentTypeId" => $v1Page['contentTypeId'],
-              "mainContent" => $html,
-            );
-          ?>
-
-          <?php ## highlight_string(var_export($v1Page, true)); ?>
-          <?php ## highlight_string(var_export($values, true)); ?>
+           ?>
         </div>
 
         <div class="col-6">
