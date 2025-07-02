@@ -1,6 +1,7 @@
 <?php include('./inc/base.php'); ?>
 <?php $cms = new Cascade(); ?>
 <?php $pageIds = $cms->getPageIds("https://www2.umkc.edu/law-test/json-list.json")['message']; ?>
+<?php ## highlight_string(var_export($pageIds, true)); ?>
 <!DOCTYPE html>
 <html>
   <head>
@@ -13,7 +14,7 @@
   <body>
     <div class="container-fluid">
       <div class="row">
-        <div class="col-12">
+        <div class="col-6">
           <h2>Old Data Definition</h2>
           <?php // ID of page with Factoids: e9476305ac1e04cd3d3a61c2fa0c1f36
             // ID of page with Regular Text Block: 86731cc4ac1e00760bf9647e0b149c10
@@ -21,16 +22,43 @@
             // Some accordions: 1bf17912ac1e00767922334d75c556c8
           ?>
           <?php
-            foreach ( $pageIds as $key => $item ) {
-              $content = file_get_contents($item['link']);
-              echo "$content";
-            }
+            // Read the accordion block
+            $block = $cms->read('407d7bf8ac1e04cd3c64bafc8641037f', "block");
+            // highlight_string(var_export($block, true));
            ?>
         </div>
 
         <div class="col-6">
+          <h2>Old Content JSON</h2>
+          <?php
+          foreach ( $pageIds as $key => $item ) {
+            $content = file_get_contents($item['link']);
+            $content = json_decode($content, true);
+            // highlight_string(var_export($content, true));
+
+            // Edit the Content Type
+            highlight_string(var_export($cms->editContentType($content['assetId'])));
+
+            // Edit the Content Area
+            highlight_string(var_export($cms->editContent($content['assetId'], $content['content'])));
+            // Add the Accordions, if they exist.
+
+            echo "<h3>Accordion Generation</h3>";
+            $accordions = !empty($content['accordions']) ? $content['accordions'] : false;
+            if ( $accordions ) {
+              foreach ( $accordions as $accordion ){
+                highlight_string(var_export($cms->createAccordionBlock($accordion), true));
+              }
+            }
+          }
+          ?>
+        </div>
+        <div class="col-6">
           <h2>New Data Definition</h2>
-          <?php $v2Page =  $cms->read('eb8a0325ac1e04cd3dfe9d7048810882', 'page');
+          <!--e9473197ac1e04cd3d3a61c25cd6cc9f-->
+          <!-- V2 Page: eb8a0325ac1e04cd3dfe9d7048810882 -->
+          <?php $v2Page =  $cms->read('e9473197ac1e04cd3d3a61c25cd6cc9f', 'page');
+            // highlight_string(var_export($v2Page, true));
             $v2Page = $v2Page['asset']['page'];
             $values = array(
               "contentTypeId" => $v2Page['contentTypeId'],
