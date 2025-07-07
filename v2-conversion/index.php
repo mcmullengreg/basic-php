@@ -1,6 +1,5 @@
 <?php include('./inc/base.php'); ?>
 <?php $cms = new Cascade(); ?>
-<?php $pageIds = $cms->getPageIds("https://www2.umkc.edu/law-test/json-list.json")['message']; ?>
 <?php ## highlight_string(var_export($pageIds, true)); ?>
 <!DOCTYPE html>
 <html>
@@ -12,6 +11,86 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-4Q6Gf2aSP4eDXB8Miphtr37CMZZQ5oXLH2yaXMJ2w8e2ZtHTl7GptT4jmndRuHDT" crossorigin="anonymous">
   </head>
   <body>
+    <!-- As a heading -->
+    <nav class="navbar border-bottom border-body mb-4">
+      <div class="container">
+        <span class="navbar-brand mb-0 h1">V1 to V2 Conversion Tool</span>
+      </div>
+    </nav>
+    <?php
+      if ( empty($_POST['url']) || !filter_var($_POST['url'], FILTER_VALIDATE_URL) ) : ?>
+        <div class="container">
+          <div class="row">
+            <div class="col-6">
+              <form class="form" method="POST">
+                <label for="url" class="form-label">JSON Url</label>
+                <input type="text" id="url" name="url" class="form-control" aria-describedby="urlHelpText" />
+                <div id="urlHelpText" class="form-text">
+                  Use the JSON url that is setup on the site (ideally, should be a www2 url).
+                </div>
+                <button class="btn btn-primary" type="submit">Submit</button>
+              </form>
+            </div>
+          </div>
+        </div>
+    <?php
+      else :
+        $url = filter_var($_POST['url'], FILTER_SANITIZE_URL);
+        $pageIds = $cms->getPageIds($url)['message'];
+        if ( empty($pageIds) ) {
+          die("Nothing to be found...try a new URL");
+        }
+
+    ?>
+    <div class="container">
+      <div class="row">
+        <div class="col-6">
+        <?php
+          foreach ( $pageIds as $key => $item ) {
+            if ( $key !== 0 ) { echo "<hr />"; }
+            echo "<h2>${item['assetId']}</h2>";
+            $content = file_get_contents($item['link']);
+            $content = json_decode($content, true);
+            if ( !empty($content) ) {
+              // Edit the Content Type
+              echo "<p>...editing Content Type...<p>";
+              $status = $cms->editContentType($item['assetId']);
+
+              if ( $status['success'] == false ){
+                var_dump($status);
+                echo "<p><strong>Error: </strong>" . $status['message'] . "</p>";
+              } else {
+                echo "<p>Successfully changed Content Type</p>";
+              }
+
+              // Edit the Content Area
+              echo "<p>...editing Content Area(s)...</p>";
+              $status = $cms->editContent($item['assetId'], $content['content']);
+              if ( $status['success'] == false ){
+                var_dump($status);
+                echo "<p><strong>Error: </strong>" . $status['message'] . "</p>";
+              } else {
+                echo "<p>Successfully updated content</p>";
+              }
+
+              // Add the Accordions, if they exist.
+              $accordions = !empty($content['accordions']) ? $content['accordions'] : false;
+              if ( $accordions ) {
+                echo "<p>...generating accordsions...</p>";
+                foreach ( $accordions as $accordion ){
+                  highlight_string(var_export($cms->createAccordionBlock($accordion), true));
+                }
+              }
+            } else {
+              echo "<p><strong>This page needs edited further before editing is allowed.</strong><p>";
+            }
+          }
+        ?>
+        </div>
+      </div>
+    </div>
+    <?php endif; ?>
+    <?php /*
     <div class="container-fluid">
       <div class="row">
         <div class="col-6">
@@ -31,26 +110,7 @@
         <div class="col-6">
           <h2>Old Content JSON</h2>
           <?php
-          foreach ( $pageIds as $key => $item ) {
-            $content = file_get_contents($item['link']);
-            $content = json_decode($content, true);
-            // highlight_string(var_export($content, true));
 
-            // Edit the Content Type
-            highlight_string(var_export($cms->editContentType($content['assetId'])));
-
-            // Edit the Content Area
-            highlight_string(var_export($cms->editContent($content['assetId'], $content['content'])));
-            // Add the Accordions, if they exist.
-
-            echo "<h3>Accordion Generation</h3>";
-            $accordions = !empty($content['accordions']) ? $content['accordions'] : false;
-            if ( $accordions ) {
-              foreach ( $accordions as $accordion ){
-                highlight_string(var_export($cms->createAccordionBlock($accordion), true));
-              }
-            }
-          }
           ?>
         </div>
         <div class="col-6">
@@ -71,6 +131,7 @@
         </div>
       </div>
     </div>
+    <?php */ ?>
   </body>
 </html>
 
