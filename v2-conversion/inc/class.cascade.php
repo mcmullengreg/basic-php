@@ -35,6 +35,7 @@ class Cascade {
       curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
       curl_setopt($ch, CURLOPT_URL, $url);
       $result = json_decode(curl_exec($ch), true);
+
       curl_close($ch);
       if ( curl_errno($ch) ) {
         $result = curl_error($ch);
