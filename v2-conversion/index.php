@@ -54,7 +54,9 @@ error_reporting(E_ALL);
           foreach ( $pageIds as $key => $item ) {
             if ( $key !== 0 ) { echo "<hr />"; }
             echo "<h2>${item['assetId']}</h2>";
-            $content = file_get_contents($item['link']);
+            $options = array('http' => array('user_agent' => "MCOM Web App: Hi Donald"));
+            $context = stream_context_create($options);
+            $content = file_get_contents($item['link'], false, $context);
             $content = json_decode($content, true);
             if ( !empty($content) ) {
               // Edit the Content Type
@@ -137,6 +139,15 @@ error_reporting(E_ALL);
       </div>
     </div>
     <?php */ ?>
+
+    <script>
+      const form = document.querySelector('form');
+        form.addEventListener("submit", function(){
+          if ( !confirm("Is there a _blocks folder in the site?") ) {
+            return false
+          }
+        });
+    </script>
   </body>
 </html>
 

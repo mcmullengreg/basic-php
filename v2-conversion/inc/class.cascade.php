@@ -34,6 +34,7 @@ class Cascade {
       $ch = curl_init();
       curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
       curl_setopt($ch, CURLOPT_URL, $url);
+      curl_setopt($ch, CURLOPT_USERAGENT, "MCOM Web App: Hi Donald.");
       $result = json_decode(curl_exec($ch), true);
 
       curl_close($ch);
