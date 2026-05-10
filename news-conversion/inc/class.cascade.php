@@ -1,0 +1,128 @@
+<?php
+class Cascade {
+  private $_cmsUrl = "https://cms.umkc.edu/api/v1";
+  private $_cmsKey;
+  private $_auth;
+  public function __construct() {
+    $this->_cmsKey = getenv('CMS_KEY');
+    $this->_auth = array(
+      'authentication' => array(
+        'apiKey' => $this->_cmsKey
+      )
+    );
+  }
+  public function read($id, $type) {
+    $auth = json_encode($this->_auth);
+    $ch = curl_init($this->_cmsUrl.'/read/'.$type.'/'.$id);
+    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $auth);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+      'Content-Type: application/json',
+      'Content-Length: ' . strlen($auth)
+    ));
+
+    $result = json_decode(curl_exec($ch), true);
+    curl_close($ch);
+    return $result;
+  }
+
+  public function createFolder($siteName, $folderName, $parentFolderPath = "/posts") {
+    $asset = array(
+      "asset" => array(
+        "folder" => array(
+          "name" => $folderName,
+          "metadataSetId" => "ce324366ac1e04cd2e8e237fa0c03295",
+          "parentFolderPath" => $parentFolderPath,
+          "siteName" => $siteName,
+        )
+      )
+    );
+
+    $fields = json_encode(
+      array(
+        'authentication' => array(
+          'apiKey' => $this->_cmsKey
+          ),
+        'asset' => $asset['asset']
+      )
+    );
+    $ch = curl_init($this->_cmsUrl.'/create');
+    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $fields);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+      'Content-Type: application/json',
+      'Content-Length: ' . strlen($fields)
+    ));
+    $result = json_decode(curl_exec($ch), true);
+    curl_close($ch);
+    return $result;
+  }
+  public function getPageIds($jsonURL) {
+    $url = filter_var($jsonURL, FILTER_SANITIZE_URL);
+
+    if (filter_var($url, FILTER_VALIDATE_URL) !== false) {
+      $ch = curl_init();
+      curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+      curl_setopt($ch, CURLOPT_URL, $url);
+      curl_setopt($ch, CURLOPT_USERAGENT, "MCOM Web App: Hi Donald.");
+      $result = json_decode(curl_exec($ch), true);
+
+      curl_close($ch);
+      if ( curl_errno($ch) ) {
+        $result = curl_error($ch);
+      }
+      $return = array("status" => "valid", "message" => $result );
+    } else {
+      $return = array("status" => "error", "message" => "Invalid web address");
+    }
+
+    return $return;
+  }
+  public function editContentType($pid, $contentTypeId="ff17d1dbac1e04cd0d7c54bffdd682f7"){
+    return array( "success" => true, "message" => "CALLED. Did not run.\n\n");
+    $asset = $this->read($pid, "page");
+    $asset['asset']['page']['contentTypeId'] = $contentTypeId;
+    unset($asset['asset']['page']['pageConfigurations']);
+    $fields = array(
+      'authentication' => array(
+        'apiKey' => $this->_cmsKey
+      ),
+      'asset' => $asset['asset']
+    );
+
+    $ch = curl_init($this->_cmsUrl.'/edit/page/'.$pid);
+    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($fields));
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+      'Content-Type: application/json',
+      'Content-Length: ' . strlen(json_encode($fields))
+    ));
+    $result = json_decode(curl_exec($ch), true);
+    curl_close($ch);
+    return $result;
+  }
+
+  public function editContent($asset){
+    $pid = !empty($asset['page']['id']) ? $asset['page']['id']: die("<p><strong>No Asset ID Found</strong></p>") ;
+    $fields = array(
+      'authentication' => array(
+        'apiKey' => $this->_cmsKey
+      ),
+      'asset' => $asset
+    );
+    $ch = curl_init($this->_cmsUrl.'/edit/page/'.$pid);
+    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($fields));
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+      'Content-Type: application/json',
+      'Content-Length: ' . strlen(json_encode($fields))
+    ));
+    $result = json_decode(curl_exec($ch), true);
+    curl_close($ch);
+    return $result;
+  }
+}
