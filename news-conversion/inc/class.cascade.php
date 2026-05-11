@@ -1,6 +1,7 @@
 <?php
 class Cascade {
   private $_cmsUrl = "https://cms.umkc.edu/api/v1";
+  private $_newsSite = "DEV-News-wwwnews";
   private $_cmsKey;
   private $_auth;
   public function __construct() {
@@ -124,5 +125,85 @@ class Cascade {
     $result = json_decode(curl_exec($ch), true);
     curl_close($ch);
     return $result;
+  }
+
+  public function convertInsider($item) {
+    preg_match('/^site:\/\/AA - Insider - wwwinsider\/posts\/(\d{4})\/(\d{2})\/(.*)$/', $item['url'], $matches);
+    $year = $matches[1];
+    $month = $matches[2];
+    $fullFolderLookUp = "/posts/{$year}/{$month}";
+    // Sanity check to make sure the tool is working based on the path.
+      // $checkFolder = $this->read("{$this->_newsSite}/posts", 'folder');
+      // highlight_string(var_export($checkFolder['asset']['folder'], true));
+    // End sanity Check
+    // Check if Year folder exists
+    $checkFolder = $this->read("{$this->_newsSite}/posts/{$year}", 'folder');
+    if ( !$checkFolder['success'] ){
+      $yearFolder = $this->createFolder($this->_newsSite, $year, "/posts");
+    }
+    // Check if Month folder exists, create it if not.
+    $checkFolder = $this->read("{$this->_newsSite}/posts/{$year}/{$month}", 'folder');
+    if ( !$checkFolder['success'] ){
+      $monthFolder = $this->createFolder($this->_newsSite, $month, "/posts/{$year}");
+    }
+    // Snag the old content, for future use.
+    $oldContent = $this->read($item['id'], 'page');
+    $oldImageId = $oldContent['asset']['page']['structuredData']['structuredDataNodes'][1]['structuredDataNodes'][2]['fileId'];
+    // Content needs to include:
+      // Intro copy
+      // Content
+    $introCopy = $oldContent['asset']['page']['structuredData']['structuredDataNodes'][2]['text'];
+    $articleContent = $oldContent['asset']['page']['structuredData']['structuredDataNodes'][3]['text'];
+    $oldPageContent = $introCopy . $articleContent;
+
+    // Old Dynamic Field Values
+    $oldDynamicFields = $oldContent['asset']['page']['metadata']['dynamicFields'];
+    highlight_string(var_export($oldDynamicFields, true));
+    echo '<hr />';
+    // Update the ContentType and clear the Page Configuration
+    $updateCT = $this->editContentType($item['id']);
+    if ( $updateCT['success'] ) {
+      echo("Failed to update ContentType on asset {$item['id']}");
+    }
+    // Pass the old content into the Edit Content Function
+    $newStructure = $this->read($item['id'], 'page');
+    // highlight_string(var_export($newStructure['asset']['page']['metadata'], true));
+    echo '<hr />';
+    $newContent = $newStructure['asset']['page']['structuredData']['structuredDataNodes'];
+    // Controls Group Updates
+    $newContent[0]['structuredDataNodes'][0]['text'] = 'internal'; // audience
+    $newContent[0]['structuredDataNodes'][1]['text'] = 'standard'; // mode
+    // Media Updates
+    $newContent[1]['structuredDataNodes'][0]['structuredDataNodes'][0]['fieldId'] = $oldImageId; // Image Asset
+    $newContent[1]['structuredDataNodes'][0]['structuredDataNodes'][1]['text']    = ''; // Alt
+    $newContent[1]['structuredDataNodes'][0]['structuredDataNodes'][2]['text']    = ''; // Caption
+    $newContent[1]['structuredDataNodes'][0]['structuredDataNodes'][3]['text']    = ''; // Credit
+    $newContent[1]['structuredDataNodes'][0]['structuredDataNodes'][4]['text']    = 'default'; // Style
+    // Basic Content
+    $newContent[2]['structuredDataNodes'][0]['text'] = $oldPageContent;
+    // Metadata Updates, dynamic fields ONLY needed.
+    // GM 5.11.26 - Map the new and old fields that need to be placed. Get them written up so we can convert to
+    // the new Metadata Set for Posts.
+    $newMetadata = $newStructure['asset']['page']['metadata'];
+    $newMetadata['dynamicFields'][0][''] = '';
+    $newMetadata['dynamicFields'][1][''] = '';
+    $newMetadata['dynamicFields'][2][''] = '';
+    $asset = [
+      'asset' => [
+        'page' => [
+          'dynamicFields' => array(
+            // 0 - Category
+            [],
+            // 1 - Unit
+            [],
+            // 2 - Featured
+            [],
+            // 3 - NoIndex
+            []
+          ),
+        ]
+      ]
+    ];
+
   }
 }

@@ -6,7 +6,6 @@ error_reporting(E_ALL);
 <?php include('./inc/base.php'); ?>
 <?php
   $cms = new Cascade();
-  $newsSite = "DEV-News-wwwnews";
 ?>
 <?php ## highlight_string(var_export($pageIds, true)); ?>
 <!DOCTYPE html>
@@ -57,88 +56,11 @@ error_reporting(E_ALL);
           foreach ( $pageIds as $key => $item ) {
             if ( $key !== 0 ) { echo "<hr />"; }
             echo "<p><strong>${item['id']}</strong></p>";
-            preg_match('/^site:\/\/AA - Insider - wwwinsider\/posts\/(\d{4})\/(\d{2})\/(.*)$/', $item['url'], $matches);
-            $year = $matches[1];
-            $month = $matches[2];
-            $fullFolderLookUp = "/posts/{$year}/{$month}";
-            // Sanity check to make sure the tool is working based on the path.
-              // $checkFolder = $cms->read("{$newsSite}/posts", 'folder');
-              // highlight_string(var_export($checkFolder['asset']['folder'], true));
-            // End sanity Check
-            // Check if Year folder exists
-            $checkFolder = $cms->read("{$newsSite}/posts/{$year}", 'folder');
-            if ( !$checkFolder['success'] ){
-              $yearFolder = $cms->createFolder($newsSite, $year, "/posts");
+            if ( str_contains($item['url'], 'Insider')) {
+              $cms->convertInsider($item);
+            } elseif ( str_contains($item['url'], 'Today') ){
+              $cms->convertNews($item);
             }
-            // Check if Month folder exists, create it if not.
-            $checkFolder = $cms->read("{$newsSite}/posts/{$year}/{$month}", 'folder');
-            if ( !$checkFolder['success'] ){
-              $monthFolder = $cms->createFolder($newsSite, $month, "/posts/{$year}");
-            }
-            // Snag the old content, for future use.
-            $oldContent = $cms->read($item['id'], 'page');
-            $oldImageId = $oldContent['asset']['page']['structuredData']['structuredDataNodes'][1]['structuredDataNodes'][2]['fileId'];
-            // Content needs to include:
-              // Intro copy
-              // Content
-            $introCopy = $oldContent['asset']['page']['structuredData']['structuredDataNodes'][2]['text'];
-            $articleContent = $oldContent['asset']['page']['structuredData']['structuredDataNodes'][3]['text'];
-            $oldPageContent = $introCopy . $articleContent;
-
-            // Old Dynamic Field Values
-            $oldDynamicFields = $oldContent['asset']['page']['metadata']['dynamicFields'];
-            highlight_string(var_export($oldDynamicFields, true));
-            echo '<hr />';
-            // Update the ContentType and clear the Page Configuration
-            $updateCT = $cms->editContentType($item['id']);
-            if ( $updateCT['success'] ) {
-              echo("Failed to update ContentType on asset {$item['id']}");
-            }
-            // Pass the old content into the Edit Content Function
-            $newStructure = $cms->read($item['id'], 'page');
-            // highlight_string(var_export($newStructure['asset']['page']['metadata'], true));
-            echo '<hr />';
-            $newContent = $newStructure['asset']['page']['structuredData']['structuredDataNodes'];
-            // Controls Group Updates
-            $newContent[0]['structuredDataNodes'][0]['text'] = 'internal'; // audience
-            $newContent[0]['structuredDataNodes'][1]['text'] = 'standard'; // mode
-            // Media Updates
-            $newContent[1]['structuredDataNodes'][0]['structuredDataNodes'][0]['fieldId'] = $oldImageId; // Image Asset
-            $newContent[1]['structuredDataNodes'][0]['structuredDataNodes'][1]['fieldId'] = ''; // Alt
-            $newContent[1]['structuredDataNodes'][0]['structuredDataNodes'][2]['fieldId'] = ''; // Caption
-            $newContent[1]['structuredDataNodes'][0]['structuredDataNodes'][3]['fieldId'] = ''; // Credit
-            $newContent[1]['structuredDataNodes'][0]['structuredDataNodes'][4]['fieldId'] = 'default'; // Style
-            // Basic Content
-            $newContent[2]['structuredDataNodes'][0]['text'] = $oldPageContent;
-            // Metadata Updates, dynamic fields ONLY needed.
-            // GM 5.11.26 - Map the new and old fields that need to be placed. Get them written up so we can convert to
-            // the new Metadata Set for Posts.
-
-            $asset = [
-              'asset' => [
-                'page' => [
-                  'dynamicFields' => array(
-                    // 0 - Category
-                    [],
-                    // 1 - Unit
-                    [],
-                    // 2 - Featured
-                    [],
-                    // 3 - NoIndex
-                    []
-                  ),
-                ]
-              ]
-            ];
-
-            // Read the content, save it into a variable
-
-            // Edit the Content Type
-
-            // Edit the Content
-
-            // Move the file
-
             die();
 //             $options = array('http' => array('user_agent' => "MCOM Web App: Hi Donald"));
 //             $context = stream_context_create($options);
