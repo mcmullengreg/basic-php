@@ -205,5 +205,89 @@ class Cascade {
       ]
     ];
 
+    // hit Edit method and return that result.
+  }
+
+  public function convertNews($item) {
+    preg_match('/^site:\/\/AA - UMKC Today - wwwnews\/posts\/(\d{4})\/(january|february|march|april|may|june|july|august|september|august|november|december)\/(.*?)$/', $item['url'], $matches);
+    $year = $matches[1];
+    $month = $matches[2];
+    $month = date_parse($month);
+    $month = str_pad($month['month'], 2, "0", STR_PAD_LEFT);
+    $fullFolderLookUp = "/posts/{$year}/{$month}";
+    // Sanity check to make sure the tool is working based on the path.
+      // $checkFolder = $this->read("{$this->_newsSite}/posts", 'folder');
+      // highlight_string(var_export($checkFolder['asset']['folder'], true));
+    // End sanity Check
+    // Check if Year folder exists
+    $checkFolder = $this->read("{$this->_newsSite}/posts/{$year}", 'folder');
+    if ( !$checkFolder['success'] ){
+      $yearFolder = $this->createFolder($this->_newsSite, $year, "/posts");
+    }
+    // Check if Month folder exists, create it if not.
+    $checkFolder = $this->read("{$this->_newsSite}/posts/{$year}/{$month}", 'folder');
+    if ( !$checkFolder['success'] ){
+      $monthFolder = $this->createFolder($this->_newsSite, $month, "/posts/{$year}");
+    }
+    // Snag the old content, for future use.
+    $oldContent = $this->read($item['id'], 'page');
+    // highlight_string(var_export($oldContent['asset']['page']['structuredData']['structuredDataNodes'], true));
+    $oldImageId = $oldContent['asset']['page']['structuredData']['structuredDataNodes'][0]['structuredDataNodes'][0]['fileId'];
+    $oldImageCaption = $oldContent['asset']['page']['structuredData']['structuredDataNodes'][0]['structuredDataNodes'][2]['text'];
+    // Content needs to include:
+      // Intro copy
+      // Content
+    $oldPageContent = $oldImageCaption = $oldContent['asset']['page']['structuredData']['structuredDataNodes'][0]['structuredDataNodes'][5]['text'];;
+
+    // Old Dynamic Field Values
+    $oldDynamicFields = $oldContent['asset']['page']['metadata']['dynamicFields'];
+    highlight_string(var_export($oldDynamicFields, true));
+    die();
+    echo '<hr />';
+    // Update the ContentType and clear the Page Configuration
+    $updateCT = $this->editContentType($item['id']);
+    if ( !$updateCT['success'] ) {
+      echo("Failed to update ContentType on asset {$item['id']}");
+    }
+    // Pass the old content into the Edit Content Function
+    $newStructure = $this->read($item['id'], 'page');
+    // highlight_string(var_export($newStructure['asset']['page']['metadata'], true));
+    echo '<hr />';
+    $newContent = $newStructure['asset']['page']['structuredData']['structuredDataNodes'];
+    // Controls Group Updates
+    $newContent[0]['structuredDataNodes'][0]['text'] = 'internal'; // audience
+    $newContent[0]['structuredDataNodes'][1]['text'] = 'standard'; // mode
+    // Media Updates
+    $newContent[1]['structuredDataNodes'][0]['structuredDataNodes'][0]['fieldId'] = $oldImageId; // Image Asset
+    $newContent[1]['structuredDataNodes'][0]['structuredDataNodes'][1]['text']    = ''; // Alt
+    $newContent[1]['structuredDataNodes'][0]['structuredDataNodes'][2]['text']    = $oldImageCaption; // Caption
+    $newContent[1]['structuredDataNodes'][0]['structuredDataNodes'][3]['text']    = ''; // Credit
+    $newContent[1]['structuredDataNodes'][0]['structuredDataNodes'][4]['text']    = 'default'; // Style
+    // Basic Content
+    $newContent[2]['structuredDataNodes'][0]['text'] = $oldPageContent;
+    // Metadata Updates, dynamic fields ONLY needed.
+    // GM 5.11.26 - Map the new and old fields that need to be placed. Get them written up so we can convert to
+    // the new Metadata Set for Posts.
+    $newMetadata = $newStructure['asset']['page']['metadata'];
+    $newMetadata['dynamicFields'][0][''] = '';
+    $newMetadata['dynamicFields'][1][''] = '';
+    $newMetadata['dynamicFields'][2][''] = '';
+    $asset = [
+      'asset' => [
+        'page' => [
+          'dynamicFields' => array(
+            // 0 - Category
+            [],
+            // 1 - Unit
+            [],
+            // 2 - Featured
+            [],
+            // 3 - NoIndex
+            []
+          ),
+        ]
+      ]
+    ];
+    // Hit the edit and return that result.
   }
 }
