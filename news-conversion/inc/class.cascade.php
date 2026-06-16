@@ -1,4 +1,7 @@
 <?php
+/**
+ * summary
+ */
 class Cascade {
   private $_cmsUrl = "https://cms.umkc.edu/api/v1";
   private $_newsSite = "DEV-News-wwwnews";
